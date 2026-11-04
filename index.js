@@ -43,7 +43,7 @@ const verifyToken = async(req, res, next)=>{
   }
 
   const JWKS = createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'))
-  console.log(JWKS);
+  
   try {
     const {payload} = await jwtVerify(token, JWKS)
      next()
@@ -78,16 +78,14 @@ app.get('/upcoming-events/:id',verifyToken, async(req, res)=>{
 })
 
 //manage events api
-app.get('/upcoming-events/email/:email', async(req, res)=>{
+app.get('/upcoming-events/email/:email',verifyToken, async(req, res)=>{
    const {email} = req.params
-   console.log(email)
    const result = await eventsCollection.find({email}).toArray()
-   console.log(result);
    res.send(result);
 })
 
 //manage events api update 
-app.patch('/upcoming-events/:id', async(req, res)=>{
+app.patch('/upcoming-events/:id',verifyToken, async(req, res)=>{
   const {id} = req.params
   const updateData = req.body
   delete updateData._id
@@ -99,7 +97,7 @@ app.patch('/upcoming-events/:id', async(req, res)=>{
 })
 
 //manage event api delete
-app.delete('/upcoming-events/:id', async(req, res)=>{
+app.delete('/upcoming-events/:id',verifyToken, async(req, res)=>{
   const {id} = req.params
   const result = await eventsCollection.deleteOne({_id: new ObjectId(id)})
   res.json(result);
@@ -107,14 +105,15 @@ app.delete('/upcoming-events/:id', async(req, res)=>{
 
 
 // join event api 
-app.post('/joinevent', async(req, res)=>{
+app.post('/joinevent',verifyToken, async(req, res)=>{
    const data = req.body
    const result = await joinEventCollection.insertOne(data)
    res.send(result);
 })
 
-app.get('/joinevent', async(req, res)=>{
-  const result = await joinEventCollection.find().toArray()
+app.get('/joinevent/:email',verifyToken, async(req, res)=>{
+  const {email} = req.params
+  const result = await joinEventCollection.find({userEmail:email}).toArray()
   res.send(result);
 })
 
